@@ -1,0 +1,7 @@
+build-server:
+	go build -o bin/server ./cmd/server
+build-agent:
+	go build -o bin/agent ./cmd/agent
+build-cli:
+	go build -o bin/cli ./cmd/cli
+	
