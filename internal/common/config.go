@@ -8,26 +8,23 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/projectdiscovery/nuclei/v3/pkg/model/types/userAgent"
-	"golang.org/x/net/proxy"
 )
 
 type Config struct {
-	ServerUrl      string
-	ListenAddr     string
-	TLSCertPath    string
-	TLSKeyPath     string
-	CACertPath     string
-	BeaconInterval time.Duration
-	BeaconJitter   time.Duration
-	AgentID        string
-	userAgent      []string
-	proxyURL       string
-	FrontDomain    string
+	ServerUrl          string
+	ListenAddr         string
+	TLSCertPath        string
+	TLSKeyPath         string
+	CACertPath         string
+	BeaconInterval     time.Duration
+	BeaconJitter       time.Duration
+	AgentID            string
+	userAgents          []string
+	ProxyURL           string
+	FrontDomain        string
 	InsecureSkipVerify bool
-	Timeout        time.Duration
-	MaxRetries     int
+	Timeout            time.Duration
+	MaxRetries         int
 }
 
 func getEnvOrDefault(key, defaultVal string) string {
@@ -47,9 +44,9 @@ func getEnvOrDefaultDuration(key string, defaultVal string) time.Duration {
 	return duration
 }
 
-func getEnvOrDefaultInt(key, defaultVal string) int{
-	if val := os.Getenv(key);val != nil{
-		if i, err : strconv.Atoi(val); err == nil {
+func getEnvOrDefaultInt(key, defaultVal string) int {
+	if val := os.Getenv(key); val != "" {
+		if i, err := strconv.Atoi(val); err == nil {
 			return i
 		}
 	}
@@ -57,13 +54,12 @@ func getEnvOrDefaultInt(key, defaultVal string) int{
 	return i
 }
 
-func getEnvOrDefaultBool(key, defaultVal string) bool{
-	if val := os.Getenv(kkey); val != nil {
+func getEnvOrDefaultBool(key, defaultVal string) bool {
+	if val := os.Getenv(key); val != "" {
 		return val == "true" || val == "1"
 	}
 	return defaultVal == "true" || defaultVal == "1"
 }
-
 
 func resolvePath(path string) (string, error) {
 	if path == "" {
@@ -87,37 +83,37 @@ func ParseFlags() (*Config, error) {
 	defaultTLSCertPath := getEnvOrDefault("C2_TLS_CERT", "certs/cert.PEM")
 	defaultTLSKeyPath := getEnvOrDefault("C2_TLS_KEY", "certs/key.PEM")
 	defaultCACertPath := getEnvOrDefault("C2_CA_CERT", "certs/ca-cert.PEM")
-	defaultBeaconInterval := getEnvOrDefaultDuration("C2_BEACON_INTERVAL", "30")
-	defaultBeaconJitter := getEnvOrDefaultDuration("C2_BEACON_JITTER", "5")
+	defaultBeaconInterval := getEnvOrDefaultDuration("C2_BEACON_INTERVAL", "30s")
+	defaultBeaconJitter := getEnvOrDefaultDuration("C2_BEACON_JITTER", "5s")
 	defaultAgentID := getEnvOrDefault("C2_AGENT_ID", "")
-	defaultUserAgent := getEnvOrDefault("C2_USER_AGENT", userAgent.Default())
+	defaultUserAgent := getEnvOrDefault("C2_USER_AGENT","")
 	defaultProxyURL := getEnvOrDefault("C2_PROXY_URL", "")
 	defaultFrontDomain := getEnvOrDefault("C2_FRONT_DOMAIN", "")
 	defaultInsecureSkipVerify := getEnvOrDefaultBool("C2_INSECURE_SKIP_VERIFY", "false")
-	defaultTimeout := getEnvOrDefaultDuration("C2_TIMEOUT", 10)
+	defaultTimeout := getEnvOrDefaultDuration("C2_TIMEOUT", "10s")
 	defaultMaxRetries := getEnvOrDefaultInt("C2_MAX_RETRIES", "3")
 
 	flag.StringVar(&cfg.ServerUrl, "server-url", defaultServerUrl, "GolemC2 server url")
-	flag.StringVar(&cfg.ListenAddr, "listen", defaultListenAddr, "Server listern address")
+	flag.StringVar(&cfg.ListenAddr, "listen", defaultListenAddr, "Server listen address")
 	flag.StringVar(&cfg.TLSCertPath, "tls-cert", defaultTLSCertPath, "path to TLS certificate")
 	flag.StringVar(&cfg.TLSKeyPath, "tls-key", defaultTLSKeyPath, "path to TLS key")
 	flag.StringVar(&cfg.CACertPath, "ca-cert", defaultCACertPath, "path to CA certificate")
 	flag.DurationVar(&cfg.BeaconInterval, "beacon", defaultBeaconInterval, "agent beacon interval")
-	flag.DurationVar(&cfg.BeaconJitter,"jitter", defaultBeaconJitter, "agent beacon jitter for randomization")
+	flag.DurationVar(&cfg.BeaconJitter, "jitter", defaultBeaconJitter, "agent beacon jitter for randomization")
 	flag.StringVar(&cfg.AgentID, "agent-id", defaultAgentID, "existing agent ID (leave empty for new agent)")
-	flag.StringVar(&cfg.proxyURL,"proxy-url",defaultProxyURL,"proxy url (eg.socks5://proxy:1080)")
-	flag.StringVar(&cfg.FrontDomain,"front-domain",defaultFrontDomain,"Domain for fronting (e.g./ cdn.example.com)")
-	flag.BoolVar(&cfg.InsecureSkipVerify,"insecure-skip-verify",defaultInsecureSkipVerify,"Skip TLS certificate verification")
-	flag.DurationVar(&cfg.Timeout,"timeout",defaultTimeout,"HTTP request imeout")
-	flag.IntVar(&cfg.MaxRetries,"max-retries",defaultMaxRetries,"Number of times to retry a failed request")
+	flag.StringVar(&cfg.ProxyURL, "proxy-url", defaultProxyURL, "proxy url (eg.socks5://proxy:1080)")
+	flag.StringVar(&cfg.FrontDomain, "front-domain", defaultFrontDomain, "Domain for fronting (e.g./ cdn.example.com)")
+	flag.BoolVar(&cfg.InsecureSkipVerify, "insecure-skip-verify", defaultInsecureSkipVerify, "Skip TLS certificate verification")
+	flag.DurationVar(&cfg.Timeout, "timeout", defaultTimeout, "HTTP request imeout")
+	flag.IntVar(&cfg.MaxRetries, "max-retries", defaultMaxRetries, "Number of times to retry a failed request")
 	var userAgent string
-	flag.StringVar(&userAgent, "user-agent",defaultUserAgent,"Comma seperated list of User-agenst strings")
+	flag.StringVar(&userAgent, "user-agent", defaultUserAgent, "Comma seperated list of User-agenst strings")
 	flag.Parse()
 
-	if userAgent != ""{
-		cfg.userAgent = strings.Split(userAgent,",")
-		for i, ua := range cfg.userAgent{
-			cfg.userAgent[i] = strings.TrimSpace(ua)
+	if userAgent != "" {
+		cfg.userAgents = strings.Split(userAgent, ",")
+		for i, ua := range cfg.userAgents {
+			cfg.userAgents[i] = strings.TrimSpace(ua)
 		}
 	}
 
@@ -148,20 +144,20 @@ func (C *Config) Validate(component string) error {
 		}
 	case "agent":
 		if C.ServerUrl == "" {
-			fmt.Errorf("Server Url is needed")
+			return fmt.Errorf("Server Url is required")
 		}
 		if C.BeaconInterval <= 0 {
 			return fmt.Errorf("Beacon interval must be positive")
 		}
 		if C.BeaconJitter < 0 {
-			fmt.Errorf("Beacon jitter cannot be negative")
+			return fmt.Errorf("Beacon jitter cannot be negative")
 		}
 	case "cli":
 		if C.ServerUrl == "" {
 			return fmt.Errorf("Server url is needed")
 		}
 	default:
-		return fmt.Errorf("Invalid Component : %w", component)
+		return fmt.Errorf("Invalid Component : %s", component)
 	}
 	return nil
 }
