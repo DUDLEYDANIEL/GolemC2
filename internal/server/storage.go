@@ -8,14 +8,14 @@ import (
 type InMemoryStore struct {
   mu      sync.Mutex
   tasks   map[string][]Task
-  results map[string][]Result
+  results map[string][]result
   agents  map[string]AgentInfo
 }
 
 func NewStore() *InMemoryStore {
   return &InMemoryStore{
     tasks:   make(map[string][]Task),
-    results: make(map[string][]Result),
+    results: make(map[string][]result),
     agents:  make(map[string]AgentInfo),
   }
 }
@@ -34,19 +34,19 @@ func (s *InMemoryStore) GetTasks (agentID string) []Task {
   return ts 
 } 
 
-func (s *InMemoryStore) AddResult(agentID string, r Result){
+func (s *InMemoryStore) Addresult(agentID string, r result){
   s.mu.Lock()
   defer s.mu.Unlock()
   s.results[agentID] = append(s.results[agentID], r)
 }
 
-func (s *InMemoryStore) GetResults (agentID string) []Result{
+func (s *InMemoryStore) Getresults (agentID string) []result{
   s.mu.Lock()
   defer s.mu.Unlock()
   if results, exists := s.results[agentID]; exists{
     return results
   }
-  return []Result{}
+  return []result{}
 }
 
 func (s *InMemoryStore) UpdateAgentLastSeen(agentID string, lastSeen time.Time){

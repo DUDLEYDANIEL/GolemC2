@@ -71,6 +71,15 @@ func resolvePath(path string) (string, error) {
 			return "", err
 		}
 		path = filepath.Join(home, path[2:])
+	} else if !filepath.IsAbs(path) {
+		// Resolve relative paths relative to project root
+		root, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
+		// Adjust for cmd/server directory
+		root = filepath.Dir(filepath.Dir(root)) // Move up two levels from cmd/server
+		path = filepath.Join(root, path)
 	}
 	return filepath.Abs(path)
 }
@@ -80,9 +89,9 @@ func ParseFlags() (*Config, error) {
 
 	defaultServerUrl := getEnvOrDefault("C2_SERVER_URL", "https://localhost:8443")
 	defaultListenAddr := getEnvOrDefault("C2_LISTEN_ADDR", ":8443")
-	defaultTLSCertPath := getEnvOrDefault("C2_TLS_CERT", "certs/cert.PEM")
-	defaultTLSKeyPath := getEnvOrDefault("C2_TLS_KEY", "certs/key.PEM")
-	defaultCACertPath := getEnvOrDefault("C2_CA_CERT", "certs/ca-cert.PEM")
+	defaultTLSCertPath := getEnvOrDefault("C2_TLS_CERT", "certs/cert.pem")
+	defaultTLSKeyPath := getEnvOrDefault("C2_TLS_KEY", "certs/key.pem")
+	defaultCACertPath := getEnvOrDefault("C2_CA_CERT", "certs/ca-cert.pem")
 	defaultBeaconInterval := getEnvOrDefaultDuration("C2_BEACON_INTERVAL", "30s")
 	defaultBeaconJitter := getEnvOrDefaultDuration("C2_BEACON_JITTER", "5s")
 	defaultAgentID := getEnvOrDefault("C2_AGENT_ID", "")
@@ -144,20 +153,20 @@ func (C *Config) Validate(component string) error {
 		}
 	case "agent":
 		if C.ServerUrl == "" {
-			return fmt.Errorf("Server Url is required")
+			return fmt.Errorf("server url is required")
 		}
 		if C.BeaconInterval <= 0 {
-			return fmt.Errorf("Beacon interval must be positive")
+			return fmt.Errorf("beacon interval must be positive")
 		}
 		if C.BeaconJitter < 0 {
-			return fmt.Errorf("Beacon jitter cannot be negative")
+			return fmt.Errorf("beacon jitter cannot be negative")
 		}
 	case "cli":
 		if C.ServerUrl == "" {
-			return fmt.Errorf("Server url is needed")
+			return fmt.Errorf("server url is needed")
 		}
 	default:
-		return fmt.Errorf("Invalid Component : %s", component)
+		return fmt.Errorf("invalid component : %s", component)
 	}
 	return nil
 }

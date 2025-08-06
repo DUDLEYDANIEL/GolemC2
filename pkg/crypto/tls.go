@@ -16,7 +16,7 @@ func secureCipherSuites() []uint16{
 	}
 }
 
-func LoadTLSConfig (certFile, keyFile, caCertFile string)(* tls.Config, err){
+func LoadTLSConfig (certFile, keyFile, caCertFile string)(* tls.Config, error){
 	cert , err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil{
 		return nil , fmt.Errorf("failed to load key pair: %v", err)
@@ -26,8 +26,8 @@ func LoadTLSConfig (certFile, keyFile, caCertFile string)(* tls.Config, err){
 		Certificates : []tls.Certificate{cert},
 		MinVersion: tls.VersionTLS12,
 		MaxVersion: tls.VersionTLS13,
-		PreferredCurves: []tls.CurveID{tls.CurveP521, tls.CurveP384,tls.CurveP256},
-		CipherSuites: tls.secureCipherSuites(),
+		CurvePreferences: []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+		CipherSuites: secureCipherSuites(),
 		InsecureSkipVerify: false,		
 	}
 
