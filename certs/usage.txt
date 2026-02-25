@@ -1,0 +1,19 @@
+
+registering an implant
+
+curl --cert certs/client-cert.pem \
+     --key certs/client-key.pem \
+     --cacert certs/ca-cert.pem -X POST "https://localhost:8443/register?agent_id=test2-agent"
+
+curl --cert certs/client-cert.pem \
+     --key certs/client-key.pem \
+     --cacert certs/ca-cert.pem \
+  -X POST "https://localhost:8443/tasks?agent_id=test2-agent" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"execute","params":{"command":"whoami && pwd && ls -la"}}'
+
+curl --cert certs/client-cert.pem \
+     --key certs/client-key.pem \
+     --cacert certs/ca-cert.pem "https://localhost:8443/tasks?agent_id=test2-agent"
+
+

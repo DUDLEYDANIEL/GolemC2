@@ -5,11 +5,9 @@
 
 
 ** Functionlity features **
-1. Implant Generation:
-	Binary should be cross compiled , so they can be able to execute on cross operating system (maybe grpc )
-2. Communication Channels:
+1. Communication Channels:
 	Agents maybe use https for communication or connetion , how to implement stealthy mode of comms (mimicing normal traffic, reducind sus)
-3. Tasking and Control:
+2. Tasking and Control:
 	Server sends commands or taks, Agents executes them and agent should be beaconing for other tasks
 4. Data exfilration:
 	Agents should the result of the tasks(sensitive ), how to transfer the data securely
@@ -25,9 +23,6 @@
 ** comms **
 1. HTTPS
 2. mTLS
-3. DNS
-4. wireguard
-5. maybe add the redirectors to mask the server location 
 
 ** encryptions **
 1. mTLS
